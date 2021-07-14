@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="description">Description</string>
+    <string name="main_status">Main status</string>
+    <string name="temp_min">Min temp</string>
+    <string name="max_temp">Max temp</string>
+    <string name="visibility">Visibility</string>
+    <string name="feels_like">Feels like</string>
+    <string name="sunset">Sunset</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="wind_speed">Wind speed</string>
+    <string name="pressure">Pressure</string>
+    <string name="humidity">Humidity</string>
+    <string name="more_details">More details</string>
+    <string name="date">Date</string>
+    <string name="get_location">Get location</string>
+    <string name="search">Search</string>
+    <string name="data_for">Data for:</string>
+    <string name="millibar">mBar</string>
+    <string name="kmh">km/h</string>
+    <string name="visibilty">Visibility</string>
+    <string name="snackbar_gps_message">GPS(Location) permission is needed to show files count</string>
+    <string name="gps_perm_s_not_allowed">GPS(Location) permission isn\'t granted</string>
+    <string name="settings">SETTINGS</string>
+    <string name="cancel">Cancel</string>
+    <string name="open_n_grant_perms">Open Permissions and grant the GPS(Location) permission</string>
+    <string name="gps_perms_denied">GPS(Location) Permissions denied.</string>
+    <string name="grant">GRANT</string>
+    <string name="pls_enable_gps_perms">Please Enable GPS and Internet</string>
+    <string name="getting_location">Getting location...</string>
+</resources>
