@@ -13,6 +13,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = viewBinding()
         setContentView(vb.root)
+        checkConnectionState()
         uiFunc()
         liveData()
     }
@@ -20,4 +21,5 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     abstract fun viewBinding(): VB
     abstract fun uiFunc()
     abstract fun liveData()
+    abstract fun checkConnectionState()
 }

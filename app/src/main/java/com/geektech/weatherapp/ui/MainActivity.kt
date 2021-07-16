@@ -1,19 +1,17 @@
 package com.geektech.weatherapp.ui
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.view.View
 import android.view.animation.Animation
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import androidx.annotation.RequiresApi
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import com.geektech.weatherapp.R
 import com.geektech.weatherapp.base.BaseActivity
@@ -22,7 +20,9 @@ import com.geektech.weatherapp.extensions.convertDate
 import com.geektech.weatherapp.extensions.toast
 import com.geektech.weatherapp.model.MainWeather
 import com.geektech.weatherapp.network.Resource
+import com.geektech.weatherapp.utils.CheckNWConnectionState
 import com.geektech.weatherapp.utils.ProgrDialog
+import com.geektech.weatherapp.utils.ResultLauncher
 import com.geektech.weatherapp.utils.Status
 import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -37,9 +37,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
     private val dialog by lazy { ProgrDialog(this) }
     private val viewModel: MainViewModel by viewModel()
 
-    @RequiresApi(Build.VERSION_CODES.P)
+    private val resultLauncher = ResultLauncher(this, this, activityResultRegistry) { result ->
+        if (result.resultCode == RESULT_OK) {
+            getLocation()
+            geoCoder = Geocoder(this, Locale.getDefault())
+            return@ResultLauncher
+        }
+    }
+
+    private var isConnected = true
+    private val ccs by lazy { CheckNWConnectionState(application) }
+
+    private val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        updatePermissionsState()
+    }
+
     override fun uiFunc() {
 
+        if (!permissionsAllowed()) {
+            requestPermissions.launch(permissions)
+        }
         vb.imageGetLocation.setOnClickListener {
             if (permissionsAllowed()) {
                 getLocation()
@@ -54,22 +71,40 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
                 getLocation()
                 geoCoder = Geocoder(this, Locale.getDefault())
             } else {
-                // app doesn't have permissions, So i m requesting permissions.
                 requestPermissionWithRationale()
             }
         }
+
         vb.imageSearchCity.setOnClickListener {
             liveData()
-            vb.tvGetLocation.text = vb.etSearch.text.toString()
             hideKeyboard()
+        }
+
+        vb.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            when (actionId) {
+                EditorInfo.IME_ACTION_SEARCH -> {
+                    liveData()
+                    hideKeyboard()
+                }
+            }
+            false
         }
     }
 
     override fun liveData() {
         viewModel.loading.observe(this, { })
-        if (vb.etSearch.text.toString().isNotEmpty()) {
+        if (isConnected) {
+            checkConnectionState()
             getWeather(vb.etSearch.text.toString())
+        } else {
+            toast("Check network connection")
+            dialog.dismiss()
         }
+    }
+
+    override fun checkConnectionState() {
+
+        ccs.observe(this, { isConnected = it })
     }
 
     private fun getWeather(city: String?) {
@@ -77,6 +112,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
             viewModel.getWeather(city, "metric").observe(this, { response ->
                 when (response.status) {
                     Status.SUCCESS -> {
+                        vb.tvGetLocation.text = vb.etSearch.text.toString()
                         viewModel.loading.postValue(false)
                         vb.tvWeatherMain.text = response?.data?.weather?.get(0)?.main
                         vb.tvTemp.text = (response.data?.main?.temp.toString() + "°C")
@@ -87,7 +123,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
                                 response?.data?.visibility?.div(1000).toString() + " ${getString(R.string.kmh)}")
                         // dividing by 1000 to show pressure in millibar
                         vb.tvPressure.text = ("${getString(R.string.pressure)} " +
-                                (response?.data?.main?.pressure?.div(1000)).toString() + " ${getString(R.string.millibar)}")
+                                (response?.data?.main?.pressure?.div(1000)
+                                    ?.toDouble()).toString() + " ${getString(R.string.millibar)}")
                         vb.tvFeelsLike.text =
                             ("${getString(R.string.feels_like)} " + response?.data?.main?.feels_like.toString() + "°C")
                         vb.tvTempMax.text =
@@ -104,7 +141,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
                             ("${getString(R.string.sunset)} " + response?.data?.sys?.sunset?.convertDate())
 
                         weatherIcons(response)
-
                     }
                     Status.ERROR -> toast(response.message + "  ${response.code}")
 
@@ -114,7 +150,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         }
     }
 
-    companion object {
+    private companion object {
         private const val RC_GPS_PERMISSION = 1
     }
 
@@ -127,14 +163,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     private fun getLocation() {
         try {
             dialog.show()
             locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
             locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 5f, this)
-            if (!locationManager!!.isLocationEnabled) {
-                toast(getString(R.string.pls_enable_gps_perms))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                if (!locationManager!!.isLocationEnabled) {
+                    toast(getString(R.string.pls_enable_gps_perms))
+                }
             }
         } catch (e: SecurityException) {
             toast(e.message.toString())
@@ -194,65 +231,43 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         }
     }
 
-    private fun requestPerms() {
-        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(permissions, RC_GPS_PERMISSION)
+    private val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    private fun updatePermissionsState() {
+        val permissionsState: Map<String, Boolean> = permissions.associateWith { permission ->
+            ActivityCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+        }
+        permissionsState.forEach { (_, granted) ->
+            if (granted) {
+                getLocation()
+                geoCoder = Geocoder(this, Locale.getDefault())
+                // giving warning to user that user haven't granted permissions
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        toast(getString(R.string.gps_perms_denied))
+                    } else {
+                        showGPSPermissionSnackBar()
+                    }
+                }
+            }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        var allowed = true
-        if (requestCode == RC_GPS_PERMISSION) {
-            for (res in grantResults) {
-                // if user granted all permissions.
-                allowed = allowed && res == PackageManager.PERMISSION_GRANTED
-            }
-        } else {
-            allowed = false
-        }
-        if (allowed) {
-            getLocation()
-            geoCoder = Geocoder(this, Locale.getDefault())
-        } else {
-            // giving warning to user that user haven't granted permissions
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    toast(getString(R.string.gps_perms_denied))
-                } else {
-                    showGPSPermissionSnackBar()
-                }
-            }
+    private fun requestPerms() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(permissions, RC_GPS_PERMISSION)
         }
     }
 
     private fun showGPSPermissionSnackBar() {
         Snackbar.make(vb.root, getString(R.string.gps_perm_s_not_allowed), Snackbar.LENGTH_LONG)
             .setAction(getString(R.string.settings)) {
-                openApplicationSettings()
+                resultLauncher.openAppSettings()
                 toast(getString(R.string.open_n_grant_perms))
             }.show()
     }
 
-    private fun openApplicationSettings() {
-        val appSettingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.parse("package:$packageName"))
-        startActivityForResult(appSettingsIntent, RC_GPS_PERMISSION)
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.P)
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RC_GPS_PERMISSION) {
-            getLocation()
-            geoCoder = Geocoder(this, Locale.getDefault())
-            return
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.P)
     override fun onStart() {
         super.onStart()
         if (permissionsAllowed()) {
