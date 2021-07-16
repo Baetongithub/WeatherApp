@@ -4,19 +4,16 @@ import android.content.Context
 import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
+import java.text.SimpleDateFormat
 import java.util.*
 
 fun Context.toast(txt: String) = Toast.makeText(this, txt, Toast.LENGTH_SHORT).show()
 
 fun Int.convertDate(): String {
-    val t: String
-    val cal = Calendar.getInstance(Locale.ROOT)
-    cal.timeInMillis = (this * 1000).toLong()
-    val hours = cal[Calendar.HOUR_OF_DAY]
-    val minutes = cal[Calendar.MINUTE]
-    val seconds = cal[Calendar.SECOND]
-    t = "$hours:$minutes:$seconds"
-    return t
+    val date = Date(this * 1000L)
+    val sdf = SimpleDateFormat("HH:mm:ss")
+    sdf.timeZone = TimeZone.getTimeZone("GMT+6")
+    return sdf.format(date)
 }
 
 fun Context.snackBar(view: View, txt: String) {
