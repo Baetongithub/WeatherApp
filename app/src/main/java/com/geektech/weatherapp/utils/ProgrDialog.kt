@@ -5,7 +5,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import com.geektech.weatherapp.R
 
-class ProgrDialog(activity: Activity) {
+class ProgrDialog(activity: Activity, endGPS: () -> Unit) {
 
     private val dialog: Dialog
 
@@ -23,6 +23,7 @@ class ProgrDialog(activity: Activity) {
         builder.setView(view)
         builder.setCancelable(false)
         builder.setNegativeButton(activity.getString(R.string.cancel)) { _, _ ->
+            endGPS()
             dismiss()
         }
         dialog = builder.create()

@@ -34,8 +34,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
 
     private var geoCoder: Geocoder? = null
     private var locationManager: LocationManager? = null
-    private val dialog by lazy { ProgrDialog(this) }
+    private val dialog by lazy { ProgrDialog(this, this::endGPS) }
     private val viewModel: MainViewModel by viewModel()
+    private var isConnected = true
+    private val ccs by lazy { CheckNWConnectionState(application) }
 
     private val resultLauncher = ResultLauncher(this, this, activityResultRegistry) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -45,18 +47,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         }
     }
 
-    private var isConnected = true
-    private val ccs by lazy { CheckNWConnectionState(application) }
-
     private val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         updatePermissionsState()
     }
 
     override fun uiFunc() {
 
-        if (!permissionsAllowed()) {
-            requestPermissions.launch(permissions)
-        }
         vb.imageGetLocation.setOnClickListener {
             if (permissionsAllowed()) {
                 getLocation()
@@ -88,6 +84,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
                 }
             }
             false
+        }
+
+        if (!permissionsAllowed()) {
+            requestPermissions.launch(permissions)
         }
     }
 
@@ -208,9 +208,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         }
     }
 
+    private val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+
     private fun permissionsAllowed(): Boolean {
         var res: Int
-        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         for (perms in permissions) {
             res = checkCallingOrSelfPermission(perms)
             if (res != PackageManager.PERMISSION_GRANTED) {
@@ -230,8 +231,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
             requestPerms()
         }
     }
-
-    private val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
 
     private fun updatePermissionsState() {
         val permissionsState: Map<String, Boolean> = permissions.associateWith { permission ->
