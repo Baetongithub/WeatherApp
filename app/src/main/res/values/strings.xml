@@ -28,4 +28,5 @@
     <string name="grant">GRANT</string>
     <string name="pls_enable_gps_perms">Please Enable GPS and Internet</string>
     <string name="getting_location">Getting location...</string>
+    <string name="check_network_connection">Check network connection</string>
 </resources>

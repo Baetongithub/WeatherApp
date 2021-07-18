@@ -2,11 +2,11 @@ package com.geektech.weatherapp.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.geektech.weatherapp.base.BaseViewModel
+import androidx.lifecycle.ViewModel
 import com.geektech.weatherapp.model.MainWeather
 import com.geektech.weatherapp.network.Resource
 
-class MainViewModel(private val repository: Repository) : BaseViewModel() {
+class MainViewModel(private val repository: Repository) : ViewModel() {
     val loading = MutableLiveData<Boolean>()
 
     fun getWeather(cityName: String, units: String): LiveData<Resource<MainWeather?>> {

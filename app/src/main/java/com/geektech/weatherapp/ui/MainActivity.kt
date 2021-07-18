@@ -7,14 +7,15 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
+import android.os.Bundle
 import android.view.View
 import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.geektech.weatherapp.R
-import com.geektech.weatherapp.base.BaseActivity
 import com.geektech.weatherapp.databinding.ActivityMainBinding
 import com.geektech.weatherapp.extensions.convertDate
 import com.geektech.weatherapp.extensions.toast
@@ -29,9 +30,9 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
 import java.util.*
 
-class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
-    override fun viewBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+class MainActivity : AppCompatActivity(), LocationListener {
 
+    private lateinit var vb: ActivityMainBinding
     private var geoCoder: Geocoder? = null
     private var locationManager: LocationManager? = null
     private val dialog by lazy { ProgrDialog(this, this::endGPS) }
@@ -51,7 +52,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         updatePermissionsState()
     }
 
-    override fun uiFunc() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        vb = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(vb.root)
+
+        uiFunc()
+        checkConnectionState()
+    }
+
+    private fun uiFunc() {
 
         vb.imageGetLocation.setOnClickListener {
             if (permissionsAllowed()) {
@@ -91,18 +101,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
         }
     }
 
-    override fun liveData() {
+    private fun liveData() {
         viewModel.loading.observe(this, { })
         if (isConnected) {
-            checkConnectionState()
             getWeather(vb.etSearch.text.toString())
         } else {
-            toast("Check network connection")
+            toast(getString(R.string.check_network_connection))
             dialog.dismiss()
         }
     }
 
-    override fun checkConnectionState() {
+    private fun checkConnectionState() {
 
         ccs.observe(this, { isConnected = it })
     }
@@ -187,10 +196,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), LocationListener {
             val address =
                 addresses[0].getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
             val city = addresses[0].locality
-            val state = addresses[0].adminArea
-            val country = addresses[0].countryName
-            val postalCode = addresses[0].postalCode
-            val knownName = addresses[0].featureName
+//            val state = addresses[0].adminArea
+//            val country = addresses[0].countryName
+//            val postalCode = addresses[0].postalCode
+//            val knownName = addresses[0].featureName
 
             if (city != null) {
                 vb.etSearch.setText(city)
