@@ -14,7 +14,7 @@ val networkModules = module {
     single { provideRetrofit(get()) }
 }
 
-fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+private fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
         .addConverterFactory(GsonConverterFactory.create())
         .baseUrl(BASE_URL)
@@ -22,7 +22,7 @@ fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         .build()
 }
 
-fun provideOkHTTPClient(): OkHttpClient {
+private fun provideOkHTTPClient(): OkHttpClient {
     val interceptor = HttpLoggingInterceptor()
     interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
 
@@ -34,4 +34,4 @@ fun provideOkHTTPClient(): OkHttpClient {
         .build()
 }
 
-fun provideMainWeather(retrofit: Retrofit): WeatherAPI = retrofit.create(WeatherAPI::class.java)
+private fun provideMainWeather(retrofit: Retrofit): WeatherAPI = retrofit.create(WeatherAPI::class.java)
