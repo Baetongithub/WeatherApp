@@ -158,10 +158,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    private companion object {
-        private const val RC_GPS_PERMISSION = 1
-    }
-
     private fun endGPS() {
         try {
             locationManager!!.removeUpdates(this)
@@ -322,5 +318,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
             "13n" -> vb.lottieIcons.setAnimation(R.raw.snownight)
             "50d" -> vb.lottieIcons.setAnimation(R.raw.mist)
         }
+    }
+
+    private companion object {
+        private const val RC_GPS_PERMISSION = 1
     }
 }
