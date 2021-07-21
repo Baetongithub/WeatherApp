@@ -19,8 +19,8 @@ import com.geektech.weatherapp.R
 import com.geektech.weatherapp.databinding.ActivityMainBinding
 import com.geektech.weatherapp.extensions.convertDate
 import com.geektech.weatherapp.extensions.toast
-import com.geektech.weatherapp.model.MainWeather
-import com.geektech.weatherapp.network.Resource
+import com.geektech.weatherapp.data.model.MainWeather
+import com.geektech.weatherapp.data.network.Resource
 import com.geektech.weatherapp.utils.CheckNWConnectionState
 import com.geektech.weatherapp.utils.ProgrDialog
 import com.geektech.weatherapp.utils.ResultLauncher
@@ -57,12 +57,15 @@ class MainActivity : AppCompatActivity(), LocationListener {
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        uiFunc()
+        if (!permissionsAllowed()) {
+            requestPermissions.launch(permissions)
+        }
+
+        initClicks()
         checkConnectionState()
     }
 
-    private fun uiFunc() {
-
+    private fun initClicks() {
         vb.imageGetLocation.setOnClickListener {
             if (permissionsAllowed()) {
                 getLocation()
@@ -82,26 +85,22 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
 
         vb.imageSearchCity.setOnClickListener {
-            liveData()
+            loadData()
             hideKeyboard()
         }
 
         vb.etSearch.setOnEditorActionListener { _, actionId, _ ->
             when (actionId) {
                 EditorInfo.IME_ACTION_SEARCH -> {
-                    liveData()
+                    loadData()
                     hideKeyboard()
                 }
             }
             false
         }
-
-        if (!permissionsAllowed()) {
-            requestPermissions.launch(permissions)
-        }
     }
 
-    private fun liveData() {
+    private fun loadData() {
         viewModel.loading.observe(this, { })
         if (isConnected) {
             getWeather(vb.etSearch.text.toString())

@@ -1,4 +1,4 @@
-package com.geektech.weatherapp.model
+package com.geektech.weatherapp.data.model
 
 data class Weather(
     val description: String? = null,

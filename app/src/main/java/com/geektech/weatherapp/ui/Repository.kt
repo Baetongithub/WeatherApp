@@ -3,9 +3,9 @@ package com.geektech.weatherapp.ui
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.geektech.weatherapp.BuildConfig.API_KEY
-import com.geektech.weatherapp.model.MainWeather
-import com.geektech.weatherapp.network.Resource
-import com.geektech.weatherapp.network.WeatherAPI
+import com.geektech.weatherapp.data.model.MainWeather
+import com.geektech.weatherapp.data.network.Resource
+import com.geektech.weatherapp.data.network.WeatherAPI
 import kotlinx.coroutines.Dispatchers
 
 class Repository(private val weatherAPI: WeatherAPI) {

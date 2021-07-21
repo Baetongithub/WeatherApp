@@ -1,4 +1,4 @@
-package com.geektech.weatherapp.model
+package com.geektech.weatherapp.data.model
 
 data class Coord(
     val lat: Double? = null,

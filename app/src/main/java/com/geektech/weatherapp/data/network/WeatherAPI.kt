@@ -1,6 +1,6 @@
-package com.geektech.weatherapp.network
+package com.geektech.weatherapp.data.network
 
-import com.geektech.weatherapp.model.MainWeather
+import com.geektech.weatherapp.data.model.MainWeather
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query

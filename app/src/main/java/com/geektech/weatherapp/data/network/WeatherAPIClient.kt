@@ -1,4 +1,4 @@
-package com.geektech.weatherapp.network
+package com.geektech.weatherapp.data.network
 
 import com.geektech.weatherapp.BuildConfig.BASE_URL
 import okhttp3.OkHttpClient
