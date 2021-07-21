@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun checkConnectionState() {
-
         ccs.observe(this, { isConnected = it })
     }
 
@@ -158,15 +157,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    private fun endGPS() {
-        try {
-            locationManager!!.removeUpdates(this)
-            locationManager = null
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     private fun getLocation() {
         try {
             dialog.show()
@@ -209,6 +199,15 @@ class MainActivity : AppCompatActivity(), LocationListener {
         } catch (e: IOException) {
             toast(e.message.toString())
             dialog.dismiss()
+        }
+    }
+
+    private fun endGPS() {
+        try {
+            locationManager!!.removeUpdates(this)
+            locationManager = null
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -286,13 +285,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
         endGPS()
     }
 
-    private fun hideKeyboard() {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        var view = currentFocus
-        if (view == null) view = View(this)
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
-    }
-
     private fun weatherIcons(resource: Resource<MainWeather?>) {
         //working on it, obeshshaiu pridumaiu luchsheie reshenie
         vb.lottieIcons.speed = 2.0f
@@ -318,6 +310,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
             "13n" -> vb.lottieIcons.setAnimation(R.raw.snownight)
             "50d" -> vb.lottieIcons.setAnimation(R.raw.mist)
         }
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        var view = currentFocus
+        if (view == null) view = View(this)
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     private companion object {
